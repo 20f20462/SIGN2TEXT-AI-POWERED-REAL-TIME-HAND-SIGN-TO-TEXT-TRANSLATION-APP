@@ -1,4 +1,4 @@
-# new_app
+# SIGN2TEXT: AI-POWERED REAL-TIME HAND SIGN TO TEXT TRANSLATION APP
 
 A new Flutter project.
 
