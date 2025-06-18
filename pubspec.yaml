@@ -81,6 +81,33 @@ flutter:
      - assets/model_unquant.tflite
      - assets/labels.txt
      - assets/wlc.jpg
+     - assets/letters/
+     - assets/letters/A.jpg
+     - assets/letters/B.jpg
+     - assets/letters/C.jpg
+     - assets/letters/D.jpg
+     - assets/letters/E.jpg
+     - assets/letters/F.jpg
+     - assets/letters/G.jpg
+     - assets/letters/H.jpg
+     - assets/letters/I.jpg
+     - assets/letters/J.jpg
+     - assets/letters/K.jpg
+     - assets/letters/L.jpg
+     - assets/letters/M.jpg
+     - assets/letters/N.jpg
+     - assets/letters/O.jpg
+     - assets/letters/P.jpg
+     - assets/letters/Q.jpg
+     - assets/letters/R.jpg
+     - assets/letters/S.jpg
+     - assets/letters/T.jpg
+     - assets/letters/U.jpg
+     - assets/letters/V.jpg
+     - assets/letters/W.jpg
+     - assets/letters/X.jpg
+     - assets/letters/Y.jpg
+     - assets/letters/Z.jpg
 
 
      

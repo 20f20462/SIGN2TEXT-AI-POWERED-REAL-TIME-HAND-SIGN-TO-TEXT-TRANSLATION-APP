@@ -20,6 +20,14 @@ class _GalleryViewState extends State<GalleryView> {
   late tfl.Interpreter _interpreter;
   late List<String> _labels;
 
+  // List of letters A-Z for your preset images
+  final List<String> presetLetters = List.generate(
+    26,
+    (i) => String.fromCharCode(65 + i),
+  ); // A-Z
+
+  String? _selectedPresetImagePath;
+
   @override
   void initState() {
     super.initState();
@@ -52,10 +60,51 @@ class _GalleryViewState extends State<GalleryView> {
 
     setState(() {
       _image = File(pickedFile.path);
+      _selectedPresetImagePath = null; // clear preset selection
       _prediction = '';
     });
 
-    final bytes = await _image!.readAsBytes();
+    await runModelOnImage(File(pickedFile.path));
+  }
+
+  Future<void> onPresetImageTap(String imagePath) async {
+    setState(() {
+      _selectedPresetImagePath = imagePath;
+      _image = null; // clear gallery image
+      _prediction = '';
+    });
+
+    try {
+      // Load image bytes from asset
+      final byteData = await DefaultAssetBundle.of(context).load(imagePath);
+      final bytes = byteData.buffer.asUint8List();
+
+      final decodedImage = img.decodeImage(bytes);
+      if (decodedImage == null) return;
+
+      final resized = img.copyResize(decodedImage, width: 224, height: 224);
+      final input = imageToByteList(resized);
+      final output = List.filled(1, List.filled(_labels.length, 0.0));
+
+      _interpreter.run(input, output);
+
+      final maxProb = output[0].reduce(max);
+      final index = output[0].indexOf(maxProb);
+
+      setState(() {
+        _confidence = maxProb * 100;
+        _prediction =
+            maxProb < 0.7
+                ? 'No hand sign detected'
+                : 'Prediction: ${_labels[index]} (${_confidence.toStringAsFixed(2)}%)';
+      });
+    } catch (e) {
+      print("Error processing preset image: $e");
+    }
+  }
+
+  Future<void> runModelOnImage(File imageFile) async {
+    final bytes = await imageFile.readAsBytes();
     final decodedImage = img.decodeImage(bytes);
     if (decodedImage == null) return;
 
@@ -94,6 +143,40 @@ class _GalleryViewState extends State<GalleryView> {
     );
   }
 
+  Widget buildPresetImagesGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: presetLetters.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 5,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemBuilder: (context, index) {
+        final letter = presetLetters[index];
+        final path = 'assets/letters/$letter.jpg';
+
+        return GestureDetector(
+          onTap: () => onPresetImageTap(path),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color:
+                    _selectedPresetImagePath == path
+                        ? Colors.blue
+                        : Colors.grey,
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Image.asset(path),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _interpreter.close();
@@ -106,22 +189,33 @@ class _GalleryViewState extends State<GalleryView> {
       appBar: AppBar(title: const Text("Upload & Detect")),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            ElevatedButton.icon(
-              onPressed: pickImage,
-              icon: const Icon(Icons.upload_file),
-              label: const Text("Choose Image"),
-            ),
-            const SizedBox(height: 16),
-            if (_image != null) Image.file(_image!, height: 200),
-            const SizedBox(height: 16),
-            Text(
-              _prediction,
-              style: const TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const Text(
+                "Or select a hand sign image below:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              buildPresetImagesGrid(),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: pickImage,
+                icon: const Icon(Icons.upload_file),
+                label: const Text("Choose Image from Gallery"),
+              ),
+              const SizedBox(height: 16),
+              if (_image != null) Image.file(_image!, height: 200),
+              if (_selectedPresetImagePath != null)
+                Image.asset(_selectedPresetImagePath!, height: 200),
+              const SizedBox(height: 16),
+              Text(
+                _prediction,
+                style: const TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
