@@ -20,11 +20,10 @@ class _GalleryViewState extends State<GalleryView> {
   late tfl.Interpreter _interpreter;
   late List<String> _labels;
 
-  // List of letters A-Z for your preset images
   final List<String> presetLetters = List.generate(
     26,
     (i) => String.fromCharCode(65 + i),
-  ); // A-Z
+  );
 
   String? _selectedPresetImagePath;
 
@@ -60,7 +59,7 @@ class _GalleryViewState extends State<GalleryView> {
 
     setState(() {
       _image = File(pickedFile.path);
-      _selectedPresetImagePath = null; // clear preset selection
+      _selectedPresetImagePath = null;
       _prediction = '';
     });
 
@@ -70,12 +69,11 @@ class _GalleryViewState extends State<GalleryView> {
   Future<void> onPresetImageTap(String imagePath) async {
     setState(() {
       _selectedPresetImagePath = imagePath;
-      _image = null; // clear gallery image
+      _image = null;
       _prediction = '';
     });
 
     try {
-      // Load image bytes from asset
       final byteData = await DefaultAssetBundle.of(context).load(imagePath);
       final bytes = byteData.buffer.asUint8List();
 
